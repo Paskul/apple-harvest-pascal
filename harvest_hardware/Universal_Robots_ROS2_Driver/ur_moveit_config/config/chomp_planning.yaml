@@ -1,0 +1,23 @@
+planner_configs:
+  CHOMP:
+    planning_plugin: chomp_interface/ChompPlanner
+    # you can add any of the CHOMP parameters here; these are some examples
+    planning_time_limit: 5.0
+    max_iterations: 200
+    max_iterations_after_collision_free: 50
+
+    smoothness_cost_weight: 0.2
+    obstacle_cost_weight: 1.0
+
+    collision_clearance: 0.25
+    collision_threshold: 0.1
+
+    # The type of trajectory initialization given to CHOMP, which can be quintic-spline, linear, cubic or fillTrajectory. 
+    # The first three options refer to the interpolation methods used for trajectory initialization between start and goal states. 
+    # fillTrajectory provides an option of initializing the trajectory with a path computed from an existing motion planner like OMPL.
+    trajectory_initialization_method: fillTrajectory
+    enable_failure_recovery: true
+
+    # not used anymore
+    # end_effector_link should match your robot
+    # animate_endeffector_segment: "gripper_link"

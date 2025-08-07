@@ -40,6 +40,8 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 
+from launch_ros.descriptions import ComposableNode
+from launch_ros.actions import ComposableNodeContainer
 
 def launch_setup(context, *args, **kwargs):
 
@@ -165,10 +167,23 @@ def launch_setup(context, *args, **kwargs):
             "planning_plugin": "ompl_interface/OMPLPlanner",
             "request_adapters": """default_planner_request_adapters/AddTimeOptimalParameterization default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints""",
             "start_state_max_bounds_error": 0.1,
-        }
+        },
+        #"ompl": {
+        #    "planning_plugin": "ompl_interface/OMPLPlanner",
+        #    "request_adapters": """default_planner_request_adapters/AddTimeOptimalParameterization default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints""",
+        #    "start_state_max_bounds_error": 0.1,
+        #}
     }
+
     ompl_planning_yaml = load_yaml("ur_moveit_config", "config/ompl_planning.yaml")
     ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
+    #ompl_planning_pipeline_config["ompl"].update(ompl_planning_yaml)
+
+    hybrid_common_params     = load_yaml("ur_moveit_config", "config/hybrid/common_hybrid_planning_params.yaml")
+    hybrid_global_params     = load_yaml("ur_moveit_config", "config/hybrid/global_planner.yaml")
+    hybrid_local_params      = load_yaml("ur_moveit_config", "config/hybrid/local_planner.yaml")
+    hybrid_manager_params    = load_yaml("ur_moveit_config", "config/hybrid/hybrid_planning_manager.yaml")
+
 
     # Trajectory Execution Configuration
     controllers_yaml = load_yaml("ur_moveit_config", "config/controllers.yaml")
@@ -214,6 +229,7 @@ def launch_setup(context, *args, **kwargs):
             robot_description_kinematics,
             robot_description_planning,
             ompl_planning_pipeline_config,
+            ompl_planning_yaml,
             trajectory_execution,
             moveit_controllers,
             planning_scene_monitor_parameters,
@@ -254,11 +270,79 @@ def launch_setup(context, *args, **kwargs):
             servo_params,
             robot_description,
             robot_description_semantic,
+            robot_description_kinematics
         ],
         output="screen",
     )
 
-    nodes_to_start = [move_group_node, rviz_node, servo_node]
+    # Pascal custom servo node -- Not fully tested
+    rr_servo_node = Node(
+        package="pascal_servo",
+        executable="rr_servo_node",
+        name="rr_servo_node",
+        parameters=[
+            robot_description,
+            robot_description_semantic,
+            {"use_sim_time": use_sim_time},
+            robot_description_kinematics
+        ],
+        output="screen",
+    )
+
+    '''
+    hybrid_container = ComposableNodeContainer(
+        name="hybrid_planning_container",
+        namespace="",  # or a namespace if you have multiple planners
+        package="rclcpp_components",
+        executable="component_container_mt",
+        output="screen",
+        composable_node_descriptions=[
+            ComposableNode(
+                package="moveit_hybrid_planning",
+                plugin="moveit::hybrid_planning::GlobalPlannerComponent",
+                name="global_planner",
+                parameters=[
+                    hybrid_common_params,
+                    joint_limit_params,
+                    hybrid_global_params, 
+                    robot_description, 
+                    robot_description_semantic, 
+                    kinematics_params, 
+                    #ompl_planning_pipeline_config,
+                    { "planning_pipelines": ompl_planning_pipeline_config },
+                    { "ur_manipulator": ompl_planning_yaml["ur_manipulator"] }
+                ],
+            ),
+            ComposableNode(
+                package="moveit_hybrid_planning",
+                plugin="moveit::hybrid_planning::LocalPlannerComponent",
+                name="local_planner",
+                parameters=[
+                    hybrid_local_params, 
+                    hybrid_common_params, 
+                    robot_description, 
+                    robot_description_semantic, 
+                    kinematics_params,
+                    joint_limit_params,
+                ],
+            ),
+            ComposableNode(
+                package="moveit_hybrid_planning",
+                plugin="moveit::hybrid_planning::HybridPlanningManager",
+                name="hybrid_planning_manager",
+                parameters=[
+                    hybrid_manager_params, 
+                    hybrid_common_params,
+                ],
+            ),
+        ],
+    )
+    '''
+
+
+    #nodes_to_start = [move_group_node, rviz_node, servo_node, hybrid_container]
+    #nodes_to_start = [move_group_node, rviz_node, servo_node]
+    nodes_to_start = [move_group_node, rviz_node, servo_node, rr_servo_node]
 
     return nodes_to_start
 

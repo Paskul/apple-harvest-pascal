@@ -51,7 +51,6 @@ def generate_launch_description():
         'launch',
         'ur_moveit_custom_hw.launch.py')
 
-
     return LaunchDescription(declared_arguments + [
         # Include UR driver launch
         IncludeLaunchDescription(
