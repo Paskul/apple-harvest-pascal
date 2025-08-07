@@ -1,4 +1,8 @@
-# Robotic Apple Harvesting Control
+# Pascal REU edits to Robotic Apple Harvesting Control
+# main changes include:
+# Planning group edits for support of RRTstar default in external caching
+# Starter Hybrid planner code (global with RRTconnect and local with forward colision checking)
+# Slight edits to URDF naming (ur with prefix to ur5e with prefix)
 
 This repository contains code to detect and localize apples from RGB-D data and operate a UR5e manipulator. This can be done with both real hardware or simulated data.
 
