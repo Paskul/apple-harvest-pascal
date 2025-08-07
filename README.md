@@ -1,5 +1,5 @@
 # Pascal REU edits to Robotic Apple Harvesting Control
-# main changes include:
+# main changes localized in /ur_moveit_config, and include:
 # Planning group edits for support of RRTstar default in external caching
 # Starter Hybrid planner code (global with RRTconnect and local with forward colision checking)
 # Slight edits to URDF naming (ur with prefix to ur5e with prefix)
