@@ -1,8 +1,8 @@
 # Pascal REU edits to Robotic Apple Harvesting Control
-# main changes localized in /ur_moveit_config, and include:
-# Planning group edits for support of RRTstar default in external caching
-# Starter Hybrid planner code (global with RRTconnect and local with forward colision checking)
-# Slight edits to URDF naming (ur with prefix to ur5e with prefix)
+## The main changes are localized in /ur_moveit_config, and include:
+1. Planning group edits for support of RRTstar default in external caching.
+2. Starter Hybrid planner code (global with RRTconnect and local with forward collision checking). To test this (with hardware launch), the MoveIt hybrid planning binary download is needed. Starter changes include an outline for two planning groups, with the intention of one in normal OMPL planning and another to be conducted through hybrid-control with a global planner starting with cache (in CSV), then relying on OMPL. However, only 'move_group' is currently used.
+4. Slight edits to URDF naming (ur with prefix to ur5e with prefix; hardcoded, but it fixed a few errors in dev).
 
 This repository contains code to detect and localize apples from RGB-D data and operate a UR5e manipulator. This can be done with both real hardware or simulated data.
 
