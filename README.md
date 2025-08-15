@@ -1,8 +1,25 @@
-# Pascal REU edits to Robotic Apple Harvesting Control
-## The main changes are localized in /ur_moveit_config, and include:
+# Pascal Apple Harvesting Control
+Continuing on the ROS 2 package for the OSU apple-harvest repo, allowing for drivers, control, vision, and general use of the groups' robotic arms with software integration. This fork provides (mostly) MoveIt changes to allow for trajectory caching/execution, as well as a start for hybrid planning/control, though it has not been fully developed yet. Some of thes
+
+## Most changes are localized in /ur_moveit_config, and include:
 1. Planning group edits for support of RRTstar default in external caching.
 2. Starter Hybrid planner code (global with RRTconnect and local with forward collision checking). To test this (with hardware launch), the MoveIt hybrid planning binary download is needed. Starter changes include an outline for two planning groups, with the intention of one in normal OMPL planning and another to be conducted through hybrid-control with a global planner starting with cache (in CSV), then relying on OMPL. However, only 'move_group' is currently used.
 4. Slight edits to URDF naming (ur with prefix to ur5e with prefix; hardcoded, but it fixed a few errors in dev).
+
+## Notes
+
+- Some of these changes are flat-out not that good if you aren't working with the UR5e arm. For example, I hard-coded config/launch prefixes where I was getting use/build errors (ex., from 'ur' to 'ur5e', change #4) for my MoveIt nodes to work properly with the URDF/SRDF files.
+- Another planning group is made, called `ompl`, that was to be used with hybrid-planning. `ompl` is a bit misleading; this wasn't intended to use purely OMPL.
+
+What my vision of the hybrid-planning cycle looks like:
+
+1. Global planner - at a first call, pulls from **the precomputed trajectory cache CSV** to move the arm to its desired voxel as a first step.
+2. Local planner - always running. Does a 'forward check' to look for obstacles in front of the robot. If there is an obstacle, it triggers a global replan. This is the default, but I don't see anything wrong with this.
+3. Global planner (replan) - Cache becomes useless, as we are away from the starting (cached) joint-state. Instead, it makes sense *here* to trigger planning from OMPL with its current joint-state with the same final desired pose.
+
+As of recent testing, the local planner works as expected, while the global planner only calls on OMPL, never looking for a cache in CSV. A custom planner plugin must be created to implement this idea with MoveIt.
+
+# Original README
 
 This repository contains code to detect and localize apples from RGB-D data and operate a UR5e manipulator. This can be done with both real hardware or simulated data.
 
